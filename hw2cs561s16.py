@@ -117,6 +117,9 @@ def BackChainingOR(KNOWLEDGE_BASE,goalConclusion):
 
     unifiedVariables = ''
     isUnifiable = False
+    #To check if any of the rules is unifiable
+    ruleUnifiable = False
+
     for rule in KNOWLEDGE_BASE:
         if rule['conclusion']['name'] == goalConclusion['name']:
             unifiedVariables,isUnifiable = unify(rule['conclusion'],goalConclusion)
@@ -128,22 +131,22 @@ def BackChainingOR(KNOWLEDGE_BASE,goalConclusion):
                             for k in range(0,rule['premise'+str(j+1)]['varCount']):
                                 if rule['premise'+str(j+1)]['variables'][k] == rule['conclusion']['variables'][i]:
                                     rule['premise'+str(j+1)]['variableSubs'][k] = rule['conclusion']['variableSubs'][i]
+                #print 'OR:',rule
+                ruleUnifiable = BackChainingAnd(KNOWLEDGE_BASE,rule)
 
 
+    return ruleUnifiable
 
+def BackChainingAnd(KNOWLEDGE_BASE,rule):
+    premiseCount = rule['premiseCount']
+    allPremiseTrue = True
+    if premiseCount == 0:
+        return True
+    else:
+        for i in range(0,premiseCount):
+            allPremiseTrue = allPremiseTrue and BackChainingOR(KNOWLEDGE_BASE,rule['premise'+str(i+1)])
 
-
-
-                #BackChainingAnd(KNOWLEDGE_BASE,rule,unifiedVariables)
-
-            '''print 'Rule: ',rule
-            print 'UnifiedVariables: ',unifiedVariables
-            print 'IsUnifiable: ',isUnifiable'''
-
-
-
-def BackChainingAnd(KNOWLEDGE_BASE,rule,unifiedVariables):
-    print 'a'
+        return allPremiseTrue
 
 
 
@@ -153,8 +156,8 @@ def BackChainingAnd(KNOWLEDGE_BASE,rule,unifiedVariables):
 # @return unifiedVariables : New unified substitution
 # @return isUnifiable : Boolean stating whether unification is possible or not
 def unify(ruleConclusion,goalConclusion):
-    ruleConclusionVariables = ruleConclusion['variables']
-    goalConclusionVariables = goalConclusion['variables']
+    ruleConclusionVariables = ruleConclusion['variableSubs']
+    goalConclusionVariables = goalConclusion['variableSubs']
     unifiedVariables = []
 
 
@@ -201,7 +204,7 @@ for i in range(0,kbCount):
     print KNOWLEDGE_BASE[i]
 
 print 'Test operations:'
-BackChainingOR(KNOWLEDGE_BASE,goalInference['premise1'])
+print BackChainingOR(KNOWLEDGE_BASE,goalInference['premise1'])
 print KNOWLEDGE_BASE
 '''x,y = unify(KNOWLEDGE_BASE[3]['conclusion'],KNOWLEDGE_BASE[0]['premise3'])
 print x
