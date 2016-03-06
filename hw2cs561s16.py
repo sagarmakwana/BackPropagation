@@ -151,8 +151,76 @@ def unifyVariables(var,x,theta):
         theta[var]=x
         return theta
 
-#---XXUnification Function DefinitionsXX--
+#---XXUnification Function DefinitionsXX----
 
+
+#----AND/OR Function Definitions------------
+
+#Implementation of FOL-BC-AK in psuedo code
+def FOL_BC_ASK(KB,query):
+    return FOL_BC_OR(KB,query,{})
+
+#Implementation of FOL-BC-OR in psuedo code
+def FOL_BC_OR(KB,goal,theta):
+    for rule in KB.fetch_rules_for_goal(goal):
+        lhs,rhs = splitRule(rule)
+        for theta1 in FOL_BC_AND(KB,lhs,unify(rhs,goal,theta)):
+            yield theta1
+
+#Implementation of FOL-BC-AND in psuedo code
+def FOL_BC_AND(KB,goals,theta):
+    if theta == 'failure':
+        return
+    elif len(goals) == 0:
+        yield theta
+    else:
+        first,rest = splitConjunctions(goals)
+        for theta1 in FOL_BC_OR(KB,substitution(theta,first),theta):
+            for theta2 in FOL_BC_AND(KB,rest,theta1):
+                yield theta2
+
+#It returns the LHS and the RHS of the given rule
+def splitRule(rule):
+    implicationSplit = rule.split(' => ')
+
+    if len(implicationSplit) == 2:
+        return implicationSplit[0].strip(),implicationSplit[1].strip()
+    else:
+        return '',rule.strip()
+
+#It returns the first and the rest of the given conjunctions.
+def splitConjunctions(goals):
+    conjunctionSplit = goals.split(' && ')
+
+    if len(conjunctionSplit) == 1:
+        return goals,''
+    else:
+        conjunctionPartition = goals.partition(' && ')
+        return conjunctionPartition[0].strip(),conjunctionPartition[2].strip()
+
+#It returns a new rule after substituting it with values in theta
+def substitution(theta,first):
+    openIndex = first.find('(')
+    closeIndex = first.find(')')
+
+    variables = first[openIndex+1:closeIndex]
+    variables = variables.split(',')
+    newRule =first[0:openIndex]
+
+    subsVar = ''
+    for l in range (0,len(variables)):
+        variables[l] = variables[l].strip()
+        if ord(str(variables[l][0])) >= 97:
+            subsVar = subsVar + theta[variables[l]]+', '
+        else:
+            subsVar = subsVar + variables[l] + ', '
+
+    subsVar = '(' + subsVar[0:len(subsVar)-2] + ')'
+    newRule = newRule + subsVar
+
+    return newRule
+
+#---XXAND/OR Function DefinitionsXX---------
 
 #----------------------------------------Input and Control-----------------------------------------------
 
@@ -175,8 +243,15 @@ for i in range(0,kbCount):
     rule = inputFile.readline().strip()
     kb.append(rule)
 KB = KNOWLEDGE_BASE(kb)
+KB.standardize_knowledge_base()
 
+subsGenerator = FOL_BC_ASK(KB,goals[0])
 
+subsList = list(subsGenerator)
 
+if len(subsList) > 0:
+    print 'True'
+else:
+    print 'False'
 
 
