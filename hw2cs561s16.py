@@ -1,5 +1,5 @@
 #@author: Sagar Bharat Makwana
-#Last Updated at 21:12 PST on 03/05/2016
+#Last Updated at 22:26 PST on 03/06/2016
 
 from copy import deepcopy
 #-------------------------------------Classes and Function Definitions------------------------------------
@@ -268,14 +268,5 @@ for goal in goals:
 
 if finalResult:
     print True
-#a= next(subsGenerator)
-#subsList = list(subsGenerator)
 
-#print a
-#print subsList
-'''if len(subsList) > 0:
-    print 'True'
-else:
-    print 'False'
-'''
 
