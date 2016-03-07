@@ -1,6 +1,7 @@
 #@author: Sagar Bharat Makwana
 #Last Updated at 21:12 PST on 03/05/2016
 
+from copy import deepcopy
 #-------------------------------------Classes and Function Definitions------------------------------------
 
 #Class representing the knowledge base.
@@ -86,6 +87,8 @@ class KNOWLEDGE_BASE:
 # or else return failure
 def unify(x,y,theta):
 
+    theta = deepcopy(theta)
+
     if theta == 'failure':
         return 'failure'
     elif x==y:
@@ -106,8 +109,10 @@ def isVariable(var):
     #Check if it is compound statement or list
     if var.find('(') != -1 or var.find(',') != -1:
         return False
-    else:
+    elif ord(str(var[0])) >= 97:
         return True
+    else:
+        return False
 
 #This function returns a boolean saying whether the input var is indeed a compound statement or not.
 def isCompound(var):
@@ -120,7 +125,7 @@ def isCompound(var):
 #This function returns a boolean saying whether the input var is indeed a compound statement or not.
 def isList(var):
 
-    if isVariable(var) == False and isCompound(var) == False:
+    if isVariable(var) == False and isCompound(var) == False and var.find(',') != -1:
         return True
     else:
         return False
@@ -143,6 +148,9 @@ def getRest(var):
 
 #Implementation of UNIFY-VAR in psuedo code
 def unifyVariables(var,x,theta):
+
+    theta = deepcopy(theta)
+
     if theta.has_key(var):
         return unify(theta[var],x,theta)
     elif theta.has_key(x):
@@ -210,7 +218,7 @@ def substitution(theta,first):
     subsVar = ''
     for l in range (0,len(variables)):
         variables[l] = variables[l].strip()
-        if ord(str(variables[l][0])) >= 97:
+        if ord(str(variables[l][0])) >= 97 and theta.has_key(variables[l]):
             subsVar = subsVar + theta[variables[l]]+', '
         else:
             subsVar = subsVar + variables[l] + ', '
@@ -245,13 +253,29 @@ for i in range(0,kbCount):
 KB = KNOWLEDGE_BASE(kb)
 KB.standardize_knowledge_base()
 
-subsGenerator = FOL_BC_ASK(KB,goals[0])
+finalResult = True
+for goal in goals:
+    subsGenerator = FOL_BC_ASK(KB,goal)
+    try:
+        firstGeneration = next(subsGenerator)
+        finalResult = finalResult and True
+        print firstGeneration
 
-subsList = list(subsGenerator)
+    except StopIteration:
+        finalResult = finalResult and False
+        print False
+        break
 
-if len(subsList) > 0:
+if finalResult:
+    print True
+#a= next(subsGenerator)
+#subsList = list(subsGenerator)
+
+#print a
+#print subsList
+'''if len(subsList) > 0:
     print 'True'
 else:
     print 'False'
-
+'''
 
