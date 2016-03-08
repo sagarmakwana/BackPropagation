@@ -170,21 +170,24 @@ def FOL_BC_ASK(KB,query):
 
 #Implementation of FOL-BC-OR in psuedo code
 def FOL_BC_OR(KB,goal,theta):
+    #print goal
+    print 'Ask: ', modifyORPrint(goal,theta)
     for rule in KB.fetch_rules_for_goal(goal):
         lhs,rhs = splitRule(rule)
-        for theta1 in FOL_BC_AND(KB,lhs,unify(rhs,goal,theta)):
+        for theta1 in FOL_BC_AND(KB,lhs,unify(rhs,goal,theta),rhs):
             yield theta1
 
 #Implementation of FOL-BC-AND in psuedo code
-def FOL_BC_AND(KB,goals,theta):
+def FOL_BC_AND(KB,goals,theta,rhs):
     if theta == 'failure':
         return
     elif len(goals) == 0:
+        print 'True: ',modifyANDPrint(rhs,theta)
         yield theta
     else:
         first,rest = splitConjunctions(goals)
         for theta1 in FOL_BC_OR(KB,substitution(theta,first),theta):
-            for theta2 in FOL_BC_AND(KB,rest,theta1):
+            for theta2 in FOL_BC_AND(KB,rest,theta1,rhs):
                 yield theta2
 
 #It returns the LHS and the RHS of the given rule
@@ -229,6 +232,64 @@ def substitution(theta,first):
     return newRule
 
 #---XXAND/OR Function DefinitionsXX---------
+
+##---------Print functions------------------
+#Modifies print statements in OR
+def modifyORPrint(goal,theta):
+    openIndex = goal.find('(')
+    closeIndex = goal.find(')')
+
+    variables = goal[openIndex+1:closeIndex]
+    variables = variables.split(',')
+    newRule =goal[0:openIndex]
+
+    subsVar = ''
+    for l in range (0,len(variables)):
+        variables[l] = variables[l].strip()
+        if ord(str(variables[l][0])) >= 97:
+
+            if theta.has_key(variables[l]):
+                sub1 = str(theta[variables[l]])
+                while ord(sub1[0]) >= 97 and theta.has_key(sub1):
+                    sub1 = str(theta[sub1])
+
+                subsVar = subsVar +sub1+', '
+            else:
+                subsVar = subsVar +'_, '
+        else:
+            subsVar = subsVar + variables[l] + ', '
+
+    subsVar = '(' + subsVar[0:len(subsVar)-2] + ')'
+    newRule = newRule + subsVar
+
+    return newRule
+
+#Modifies print statements in AND
+def modifyANDPrint(goal,theta):
+    openIndex = goal.find('(')
+    closeIndex = goal.find(')')
+
+    variables = goal[openIndex+1:closeIndex]
+    variables = variables.split(',')
+    newRule =goal[0:openIndex]
+
+    subsVar = ''
+    for l in range (0,len(variables)):
+        variables[l] = variables[l].strip()
+        if ord(str(variables[l][0])) >= 97:
+
+            sub1 = str(theta[variables[l]])
+            while ord(sub1[0]) >= 97:
+                sub1 = str(theta[sub1])
+
+            subsVar = subsVar +sub1+', '
+        else:
+            subsVar = subsVar + variables[l] + ', '
+
+    subsVar = '(' + subsVar[0:len(subsVar)-2] + ')'
+    newRule = newRule + subsVar
+
+    return newRule
 
 #----------------------------------------Input and Control-----------------------------------------------
 
