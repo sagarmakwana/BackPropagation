@@ -2,6 +2,12 @@
 #Last Updated at 22:26 PST on 03/06/2016
 
 from copy import deepcopy
+import sys
+
+#Output file
+traverseLogFile = open('output.txt','w')
+
+#Global variables
 lastPrintStatement = ''
 printList = []
 standardizeCount = 1
@@ -175,12 +181,14 @@ def FOL_BC_ASK(KB,query):
 def FOL_BC_OR(KB,goal,theta):
     #print goal
     #print 'Ask: ', modifyORPrint(goal,theta)
+    global traverseLogFile
     global lastPrintStatement
     global printList
-    isGoalProvable = False
+
     totalFetchedRuleCount = len(KB.fetch_rules_for_goal(goal))
     currentFetchedRuleCount = 0
     hasYieldedOnce = False
+
     for rule in KB.fetch_rules_for_goal(goal):
 
         currentFetchedRuleCount = currentFetchedRuleCount +1
@@ -191,11 +199,13 @@ def FOL_BC_OR(KB,goal,theta):
                 lhs,rhs = splitRule(rule)
                 if unify(rhs,goal,theta) != 'failure':
                     print 'Ask: '+modifyORPrint(goal,theta)
+                    traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
                     lastPrintStatement = printStatement
                     printList.append(printStatement)
 
             else:
                 print 'Ask: '+modifyORPrint(goal,theta)
+                traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
                 lastPrintStatement = printStatement
                 printList.append(printStatement)
 
@@ -209,8 +219,8 @@ def FOL_BC_OR(KB,goal,theta):
             yield theta1
 
         if currentFetchedRuleCount == totalFetchedRuleCount and hasYieldedOnce == False:
-            temp = 'False: '+modifyORPrint(goal,theta)
             print 'False: '+modifyORPrint(goal,theta)
+            traverseLogFile.write('False: '+modifyORPrint(goal,theta)+'\n')
 
 
         '''if isGoalProvable == False and len(lhs)!= 0:
@@ -221,10 +231,14 @@ def FOL_BC_OR(KB,goal,theta):
 
 #Implementation of FOL-BC-AND in psuedo code
 def FOL_BC_AND(KB,goals,theta,rhs):
+
+    global traverseLogFile
+
     if theta == 'failure':
         return
     elif len(goals) == 0:
         print 'True: '+modifyANDPrint(rhs,theta)
+        traverseLogFile.write('True: '+modifyANDPrint(rhs,theta)+'\n')
         yield theta
     else:
         first,rest = splitConjunctions(goals)
@@ -388,9 +402,6 @@ def checkFalsePrint(KB,goal,theta,modifiedOR):
             print 'False: '+modifiedOR
             lastPrintStatement = printStatement
 
-
-
-
 #----------------------------------------Input and Control-----------------------------------------------
 
 #filename = sys.argv[-1]
@@ -426,9 +437,11 @@ for goal in goals:
     except StopIteration:
         finalResult = finalResult and False
         print False
+        traverseLogFile.write('False')
         break
 
 if finalResult:
     print True
+    traverseLogFile.write('True')
 
-
+traverseLogFile.close()
