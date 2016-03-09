@@ -2,6 +2,9 @@
 #Last Updated at 22:26 PST on 03/06/2016
 
 from copy import deepcopy
+lastPrintStatement = ''
+printList = []
+standardizeCount = 1
 #-------------------------------------Classes and Function Definitions------------------------------------
 
 #Class representing the knowledge base.
@@ -171,18 +174,57 @@ def FOL_BC_ASK(KB,query):
 #Implementation of FOL-BC-OR in psuedo code
 def FOL_BC_OR(KB,goal,theta):
     #print goal
-    print 'Ask: ', modifyORPrint(goal,theta)
+    #print 'Ask: ', modifyORPrint(goal,theta)
+    global lastPrintStatement
+    global printList
+    isGoalProvable = False
+    totalFetchedRuleCount = len(KB.fetch_rules_for_goal(goal))
+    currentFetchedRuleCount = 0
+    hasYieldedOnce = False
     for rule in KB.fetch_rules_for_goal(goal):
-        lhs,rhs = splitRule(rule)
+
+        currentFetchedRuleCount = currentFetchedRuleCount +1
+
+        printStatement = 'Ask: '+modifyORPrint(goal,theta)
+        if lastPrintStatement != printStatement:
+            if printList.count(printStatement) != 0:
+                lhs,rhs = splitRule(rule)
+                if unify(rhs,goal,theta) != 'failure':
+                    print 'Ask: '+modifyORPrint(goal,theta)
+                    lastPrintStatement = printStatement
+                    printList.append(printStatement)
+
+            else:
+                print 'Ask: '+modifyORPrint(goal,theta)
+                lastPrintStatement = printStatement
+                printList.append(printStatement)
+
+
+
+        #checkFalsePrint(KB,goal,theta,modifyORPrint(goal,theta))
+
+        lhs,rhs = standardizeVariable(rule)
         for theta1 in FOL_BC_AND(KB,lhs,unify(rhs,goal,theta),rhs):
+            hasYieldedOnce = True
             yield theta1
+
+        if currentFetchedRuleCount == totalFetchedRuleCount and hasYieldedOnce == False:
+            temp = 'False: '+modifyORPrint(goal,theta)
+            print 'False: '+modifyORPrint(goal,theta)
+
+
+        '''if isGoalProvable == False and len(lhs)!= 0:
+            lastStatement = 'False: '+modifyORPrint(goal,theta)
+            if lastStatement != lastPrintStatement:
+                print 'False: '+modifyORPrint(goal,theta)
+                lastPrintStatement = lastStatement'''
 
 #Implementation of FOL-BC-AND in psuedo code
 def FOL_BC_AND(KB,goals,theta,rhs):
     if theta == 'failure':
         return
     elif len(goals) == 0:
-        print 'True: ',modifyANDPrint(rhs,theta)
+        print 'True: '+modifyANDPrint(rhs,theta)
         yield theta
     else:
         first,rest = splitConjunctions(goals)
@@ -230,6 +272,40 @@ def substitution(theta,first):
     newRule = newRule + subsVar
 
     return newRule
+
+def standardizeVariable(rule):
+    global standardizeCount
+    remaining = rule[:]
+    newRule = ''
+    openIndex = remaining.find('(')
+    closeIndex = remaining.find(')')
+
+    while (openIndex != -1 and closeIndex != -1):
+        variables = remaining[openIndex+1:closeIndex]
+        newRule = newRule + remaining[0:openIndex]
+        remaining = remaining[closeIndex+1:]
+
+        variables = variables.split(',')
+
+        subsVar = ''
+        for l in range (0,len(variables)):
+            variables[l] = variables[l].strip()
+            if ord(str(variables[l][0])) >= 97:
+                subsVar = subsVar + variables[l]+''+str(standardizeCount)+', '
+            else:
+                subsVar = subsVar + variables[l] + ', '
+
+
+        subsVar = '(' + subsVar[0:len(subsVar)-2] + ')'
+        newRule = newRule + subsVar
+
+        openIndex = remaining.find('(')
+        closeIndex = remaining.find(')')
+
+    lhs,rhs = splitRule(newRule)
+    standardizeCount = standardizeCount + 1
+
+    return lhs,rhs
 
 #---XXAND/OR Function DefinitionsXX---------
 
@@ -291,6 +367,30 @@ def modifyANDPrint(goal,theta):
 
     return newRule
 
+
+def checkFalsePrint(KB,goal,theta,modifiedOR):
+    global lastPrintStatement
+    printFailure = False
+    for rule in KB.fetch_rules_for_goal(goal):
+        printFailure = False
+        lhs, rhs = splitRule(rule)
+        if len(lhs) == 0:
+            tempUnify = unify(rhs, goal, theta)
+            if tempUnify == 'failure':
+                printFailure = True
+            else:
+                printFailure = False
+                break
+
+    if printFailure:
+        printStatement = 'False: '+modifiedOR
+        if printStatement != lastPrintStatement:
+            print 'False: '+modifiedOR
+            lastPrintStatement = printStatement
+
+
+
+
 #----------------------------------------Input and Control-----------------------------------------------
 
 #filename = sys.argv[-1]
@@ -312,15 +412,16 @@ for i in range(0,kbCount):
     rule = inputFile.readline().strip()
     kb.append(rule)
 KB = KNOWLEDGE_BASE(kb)
-KB.standardize_knowledge_base()
 
 finalResult = True
 for goal in goals:
+    lastPrintStatement = ''
+    printList = []
     subsGenerator = FOL_BC_ASK(KB,goal)
     try:
         firstGeneration = next(subsGenerator)
         finalResult = finalResult and True
-        print firstGeneration
+        #print firstGeneration
 
     except StopIteration:
         finalResult = finalResult and False
