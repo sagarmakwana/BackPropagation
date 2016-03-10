@@ -1,6 +1,6 @@
 #@author: Sagar Bharat Makwana
 #Last Updated at 22:22 PST on 03/09/2016
-#Vocureum version 4.0
+#Vocureum version 4.0 Final
 from copy import deepcopy
 import sys
 
@@ -381,8 +381,8 @@ def modifyANDPrint(goal,theta):
 
 #----------------------------------------Input and Control-----------------------------------------------
 
-filename = sys.argv[-1]
-#filename = 'input.txt'
+#filename = sys.argv[-1]
+filename = 'input.txt'
 
 #Reading the input file
 inputFile = open(filename)
