@@ -1,6 +1,6 @@
 #@author: Sagar Bharat Makwana
-#Last Updated at 18:39 PST on 03/09/2016
-#Vocureum version 2.0
+#Last Updated at 22:22 PST on 03/09/2016
+#Vocureum version 4.0
 from copy import deepcopy
 import sys
 
@@ -9,7 +9,6 @@ traverseLogFile = open('output.txt','w')
 
 #Global variables
 lastPrintStatement = ''
-printList = []
 standardizeCount = 1
 #-------------------------------------Classes and Function Definitions------------------------------------
 
@@ -183,12 +182,12 @@ def FOL_BC_OR(KB,goal,theta):
     #print 'Ask: ', modifyORPrint(goal,theta)
     global traverseLogFile
     global lastPrintStatement
-    global printList
+    printList = []
 
     totalFetchedRuleCount = len(KB.fetch_rules_for_goal(goal))
     if totalFetchedRuleCount == 0:
-        print 'Ask: '+modifyORPrint(goal,theta)
-        print 'False: '+modifyORPrint(goal,theta)
+        #print 'Ask: '+modifyORPrint(goal,theta)
+        #print 'False: '+modifyORPrint(goal,theta)
         traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
         traverseLogFile.write('False: '+modifyORPrint(goal,theta)+'\n')
     currentFetchedRuleCount = 0
@@ -198,18 +197,19 @@ def FOL_BC_OR(KB,goal,theta):
 
         currentFetchedRuleCount = currentFetchedRuleCount +1
 
+        lhs,rhs = standardizeVariable(rule)
+
         printStatement = 'Ask: '+modifyORPrint(goal,theta)
         if lastPrintStatement != printStatement:
             if printList.count(printStatement) != 0:
-                lhs,rhs = splitRule(rule)
                 if unify(rhs,goal,theta) != 'failure':
-                    print 'Ask: '+modifyORPrint(goal,theta)
+                    #print 'Ask: '+modifyORPrint(goal,theta)
                     traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
                     lastPrintStatement = printStatement
                     printList.append(printStatement)
 
             else:
-                print 'Ask: '+modifyORPrint(goal,theta)
+                #print 'Ask: '+modifyORPrint(goal,theta)
                 traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
                 lastPrintStatement = printStatement
                 printList.append(printStatement)
@@ -218,21 +218,14 @@ def FOL_BC_OR(KB,goal,theta):
 
         #checkFalsePrint(KB,goal,theta,modifyORPrint(goal,theta))
 
-        lhs,rhs = standardizeVariable(rule)
+        #lhs,rhs = standardizeVariable(rule)
         for theta1 in FOL_BC_AND(KB,lhs,unify(rhs,goal,theta),rhs):
             hasYieldedOnce = True
             yield theta1
 
         if currentFetchedRuleCount == totalFetchedRuleCount and hasYieldedOnce == False:
-            print 'False: '+modifyORPrint(goal,theta)
+            #print 'False: '+modifyORPrint(goal,theta)
             traverseLogFile.write('False: '+modifyORPrint(goal,theta)+'\n')
-
-
-        '''if isGoalProvable == False and len(lhs)!= 0:
-            lastStatement = 'False: '+modifyORPrint(goal,theta)
-            if lastStatement != lastPrintStatement:
-                print 'False: '+modifyORPrint(goal,theta)
-                lastPrintStatement = lastStatement'''
 
 #Implementation of FOL-BC-AND in psuedo code
 def FOL_BC_AND(KB,goals,theta,rhs):
@@ -242,7 +235,7 @@ def FOL_BC_AND(KB,goals,theta,rhs):
     if theta == 'failure':
         return
     elif len(goals) == 0:
-        print 'True: '+modifyANDPrint(rhs,theta)
+        #print 'True: '+modifyANDPrint(rhs,theta)
         traverseLogFile.write('True: '+modifyANDPrint(rhs,theta)+'\n')
         yield theta
     else:
@@ -386,31 +379,10 @@ def modifyANDPrint(goal,theta):
 
     return newRule
 
-
-def checkFalsePrint(KB,goal,theta,modifiedOR):
-    global lastPrintStatement
-    printFailure = False
-    for rule in KB.fetch_rules_for_goal(goal):
-        printFailure = False
-        lhs, rhs = splitRule(rule)
-        if len(lhs) == 0:
-            tempUnify = unify(rhs, goal, theta)
-            if tempUnify == 'failure':
-                printFailure = True
-            else:
-                printFailure = False
-                break
-
-    if printFailure:
-        printStatement = 'False: '+modifiedOR
-        if printStatement != lastPrintStatement:
-            print 'False: '+modifiedOR
-            lastPrintStatement = printStatement
-
 #----------------------------------------Input and Control-----------------------------------------------
 
-filename = sys.argv[-1]
-#filename = 'input.txt'
+#filename = sys.argv[-1]
+filename = 'input.txt'
 
 #Reading the input file
 inputFile = open(filename)
@@ -441,12 +413,12 @@ for goal in goals:
 
     except StopIteration:
         finalResult = finalResult and False
-        print False
+        #print False
         traverseLogFile.write('False')
         break
 
 if finalResult:
-    print True
+    #print True
     traverseLogFile.write('True')
 
 traverseLogFile.close()
