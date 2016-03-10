@@ -381,8 +381,8 @@ def modifyANDPrint(goal,theta):
 
 #----------------------------------------Input and Control-----------------------------------------------
 
-#filename = sys.argv[-1]
-filename = 'input.txt'
+filename = sys.argv[-1]
+#filename = 'input.txt'
 
 #Reading the input file
 inputFile = open(filename)
