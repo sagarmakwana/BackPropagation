@@ -1,6 +1,6 @@
 #@author: Sagar Bharat Makwana
-#Last Updated at 22:26 PST on 03/06/2016
-
+#Last Updated at 18:39 PST on 03/09/2016
+#Vocureum version 2.0
 from copy import deepcopy
 import sys
 
@@ -186,6 +186,11 @@ def FOL_BC_OR(KB,goal,theta):
     global printList
 
     totalFetchedRuleCount = len(KB.fetch_rules_for_goal(goal))
+    if totalFetchedRuleCount == 0:
+        print 'Ask: '+modifyORPrint(goal,theta)
+        print 'False: '+modifyORPrint(goal,theta)
+        traverseLogFile.write('Ask: '+modifyORPrint(goal,theta)+'\n')
+        traverseLogFile.write('False: '+modifyORPrint(goal,theta)+'\n')
     currentFetchedRuleCount = 0
     hasYieldedOnce = False
 
@@ -404,8 +409,8 @@ def checkFalsePrint(KB,goal,theta,modifiedOR):
 
 #----------------------------------------Input and Control-----------------------------------------------
 
-#filename = sys.argv[-1]
-filename = 'input.txt'
+filename = sys.argv[-1]
+#filename = 'input.txt'
 
 #Reading the input file
 inputFile = open(filename)
